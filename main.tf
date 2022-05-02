@@ -10,6 +10,18 @@ terraform {
   required_version = ">= 1.1.0"
 }
 
+variable "subscription_id" {
+  type    = list(string)
+}
+
+variable "client_id" {
+  type    = list(string)
+}
+
+variable "tenant_id" {
+  type    = list(string)
+}
+
 provider "azurerm" {
   version = "~> 3.0.2"
   subscription_id = var.subscription_id
