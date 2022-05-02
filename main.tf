@@ -11,15 +11,15 @@ terraform {
 }
 
 variable "subscription_id" {
-  type    = list(string)
+  type    = string
 }
 
 variable "client_id" {
-  type    = list(string)
+  type    = string
 }
 
 variable "tenant_id" {
-  type    = list(string)
+  type    = string
 }
 
 provider "azurerm" {
