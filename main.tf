@@ -140,8 +140,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "qs_vmss" {
  
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "20_04-lts"
+    offer     = "0001-com-ubuntu-confidential-vm-focal"
+    sku       = "20_04-lts-gen2"
+    urn       = "Canonical:0001-com-ubuntu-confidential-vm-focal:20_04-lts-gen2:20.04.202110290"
     version   = "latest"
   }
  
