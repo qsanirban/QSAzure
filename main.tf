@@ -141,7 +141,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "qs_vmss" {
   source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "20.04-LTS"
+    sku       = "20.04-LTS-gen2"
     version   = "latest"
   }
  
