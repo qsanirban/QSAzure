@@ -118,18 +118,18 @@ resource "azurerm_lb_probe" "qs_probe" {
 }
 
 resource "azurerm_lb_rule" "qs_lbnatrule" {
-   resource_group_name            = azurerm_resource_group.QSRG.name
+   ##resource_group_name            = azurerm_resource_group.QSRG.name
    loadbalancer_id                = azurerm_lb.qs_lb.id
    name                           = "http"
    protocol                       = "Tcp"
    frontend_port                  = 80
    backend_port                   = 80
-   backend_address_pool_id        = azurerm_lb_backend_address_pool.qs_bpepool.id
+   ##backend_address_pool_id        = azurerm_lb_backend_address_pool.qs_bpepool.id
    frontend_ip_configuration_name = "PublicIPAddress"
    probe_id                       = azurerm_lb_probe.qs_probe.id
 }
 
-resource "azurerm_virtual_machine_scale_set" "qs_vmss" {
+resource "azurerm_linux_virtual_machine_scale_set" "qs_vmss" {
  name                = "qsvmscaleset"
  location            = azurerm_resource_group.QSRG.location
  resource_group_name = azurerm_resource_group.QSRG.name
