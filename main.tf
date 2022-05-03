@@ -86,7 +86,7 @@ resource "azurerm_network_interface" "QS_NIC1" {
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "QS_VMSS" {
-  name                = "qs_vmss"
+  name                = "qsvmss"
   resource_group_name = azurerm_resource_group.QSRG.name
   location            = azurerm_resource_group.QSRG.location
   sku                 = "Standard_F2"
