@@ -77,7 +77,7 @@ resource "azurerm_network_interface" "QS_NIC1" {
 
   ip_configuration {
     name                          = "internal"
-    subnet_id                     = azurerm_subnet.qs_public_subnet.id
+    subnet_id                     = azurerm_subnet.QS_VNET.qs_public_subnet.id
     private_ip_address_allocation = "Dynamic"
   }
 }
