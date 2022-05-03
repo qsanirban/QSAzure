@@ -158,7 +158,7 @@ os_disk {
     ip_configuration {
       name      = "internal"
       primary   = true
-      subnet_id = azurerm_subnet.qs_public_ip.id
+      subnet_id = azurerm_subnet.qs_public_subnet.id
     }
   }
 
