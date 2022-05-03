@@ -37,8 +37,16 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "QSRG" {
   name     = "QSRG"
-  location = "westus2"
+  location = "eastus"
 }
+
+resource "random_string" "qsfqdn" {
+ length  = 6
+ special = false
+ upper   = false
+ number  = false
+}
+
 
 resource "azurerm_network_security_group" "QS_SG" {
   name                = "QS_SG"
@@ -71,54 +79,176 @@ resource "azurerm_subnet" "qs_public_subnet" {
   address_prefixes     = ["10.1.1.128/25"]
 }
 
-
-
-resource "azurerm_network_interface" "QS_NIC1" {
-  name                = "qs_nic1"
-  location            = azurerm_resource_group.QSRG.location
-  resource_group_name = azurerm_resource_group.QSRG.name
-
-  ip_configuration {
-    name                          = "internal"
-    subnet_id                     = azurerm_subnet.qs_public_subnet.id
-    private_ip_address_allocation = "Dynamic"
+resource "azurerm_public_ip" "qs_public_ip" {
+ name                         = "qs-public-ip"
+ location                     = azurerm_resource_group.QSRG.location
+ resource_group_name          = azurerm_resource_group.QSRG.name
+ allocation_method            = "Static"
+ domain_name_label            = random_string.qsfqdn.result
+ tags = {
+    environment = "QuantumSmart"
   }
 }
 
-resource "azurerm_linux_virtual_machine_scale_set" "QS_VMSS" {
-  name                = "qsvmss"
-  resource_group_name = azurerm_resource_group.QSRG.name
-  location            = azurerm_resource_group.QSRG.location
-  sku                 = "Standard_DS_v2"
-  instances           = 1
-  admin_username      = "adminuser"
+resource "azurerm_lb" "qs_lb" {
+ name                = "qs-lb"
+ location            = azurerm_resource_group.QSRG.location
+ resource_group_name = azurerm_resource_group.QSRG.name
 
-  admin_ssh_key {
-    username   = "adminuser"
-    public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDU+K1hcgzdT/M78lljaijBK6QK7fs+wtMoEiDknHs1U10nLbj+ubQ3dFuMhV+GkfvurCmRmqF/qztF+75G6thudREbRoiXtn9VY4lVzBy7GA5/thrIDrqtabfTZw9Rc0sxUjG6dc3QHBfj0IlgmRQF5qzz0lTQcMM8CHtkc4RZN4byBZUVyXXoto1x3GOpMDNCQ81cKGAtWk5MZvoaJ7aQ6htHtS9cXjQEgbuBDCmvfIixDIOy+FO3AWkqg5+2bibGnXkOEfdFLaljmLKAS5GKOtS2gRTtGKILzXUMtics96MiW0hNGjvnLeDTTwM02+GeI9qFWQmhEXOMoJD68j9VmBJml0VH1I9DdIzWECDGSaEw5zBQ6bQvObPCeTUuCWhtWtXDWmqpQMPpUN7cTPSu+0iJJmqwIQAxVWQsq7Y+LXSnqNniv1sNCF5GBvEPj93cNWlbZasZi3+wlAVN4bPpXG4MsFRr5tLk6x20J7La/GUdaEGq1CVtwmwJuKrg6Hs="
-  }
+ frontend_ip_configuration {
+   name                 = "PublicIPAddress"
+   public_ip_address_id = azurerm_public_ip.qs_public_ip.id
+ }
 
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "20.04-LTS"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  network_interface {
-    name    = azurerm_network_interface.QS_NIC1.name
-    primary = true
-
-    ip_configuration {
-      name      = "public_ip"
-      primary   = true
-      subnet_id = azurerm_subnet.qs_public_subnet.id
-    }
+ tags = {
+    environment = "QuantumSmart"
   }
 }
 
+resource "azurerm_lb_backend_address_pool" "qs_bpepool" {
+ loadbalancer_id     = azurerm_lb.qs_lb.id
+ name                = "BackEndAddressPool"
+}
+
+resource "azurerm_lb_probe" "qs_probe" {
+ ## resource_group_name = azurerm_resource_group.QSRG.name
+ loadbalancer_id     = azurerm_lb.qs_lb.id
+ name                = "ssh-running-probe"
+ port                = 80
+}
+
+resource "azurerm_lb_rule" "qs_lbnatrule" {
+   resource_group_name            = azurerm_resource_group.QSRG.name
+   loadbalancer_id                = azurerm_lb.qs_lb.id
+   name                           = "http"
+   protocol                       = "Tcp"
+   frontend_port                  = 80
+   backend_port                   = 80
+   backend_address_pool_id        = azurerm_lb_backend_address_pool.qs_bpepool.id
+   frontend_ip_configuration_name = "PublicIPAddress"
+   probe_id                       = azurerm_lb_probe.qs_probe.id
+}
+
+resource "azurerm_virtual_machine_scale_set" "qs_vmss" {
+ name                = "qsvmscaleset"
+ location            = azurerm_resource_group.QSRG.location
+ resource_group_name = azurerm_resource_group.QSRG.name
+ upgrade_policy_mode = "Manual"
+
+ sku {
+   name     = "Standard_DS1_v2"
+   tier     = "Standard"
+   capacity = 2
+ }
+
+ storage_profile_image_reference {
+   publisher = "Canonical"
+   offer     = "UbuntuServer"
+   sku       = "20.04-LTS"
+   version   = "latest"
+ }
+
+ storage_profile_os_disk {
+   name              = ""
+   caching           = "ReadWrite"
+   create_option     = "FromImage"
+   managed_disk_type = "Standard_LRS"
+ }
+
+ storage_profile_data_disk {
+   lun          = 0
+   caching        = "ReadWrite"
+   create_option  = "Empty"
+   disk_size_gb   = 10
+ }
+
+ os_profile {
+   computer_name_prefix = "vmlab"
+   admin_username       = "adminuser"
+   admin_password       = "qs@1234$$$!!!"
+ }
+
+ os_profile_linux_config {
+   disable_password_authentication = false
+ }
+
+ network_profile {
+   name    = "terraformnetworkprofile"
+   primary = true
+
+   ip_configuration {
+     name                                   = "IPConfiguration"
+     subnet_id                              = azurerm_subnet.qs_public_subnet.id
+     load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.qs_bpepool.id]
+     primary = true
+   }
+ }
+
+  tags = {
+    environment = "QuantumSmart"
+  }
+}
+
+resource "azurerm_public_ip" "jumpbox" {
+ name                         = "jumpbox-public-ip"
+ location                     = azurerm_resource_group.QSRG.location
+ resource_group_name          = azurerm_resource_group.QSRG.name
+ allocation_method            = "Static"
+ domain_name_label            = "${random_string.qsfqdn.result}-ssh"
+   tags = {
+    environment = "QuantumSmart"
+  }
+}
+
+resource "azurerm_network_interface" "jumpbox" {
+ name                = "jumpbox-nic"
+ location            = azurerm_resource_group.QSRG.location
+ resource_group_name = azurerm_resource_group.QSRG.name
+
+ ip_configuration {
+   name                          = "IPConfiguration"
+   subnet_id                     = azurerm_subnet.qs_public_subnet.id
+   private_ip_address_allocation = "dynamic"
+   public_ip_address_id          = azurerm_public_ip.jumpbox.id
+ }
+
+   tags = {
+    environment = "QuantumSmart"
+  }
+}
+
+resource "azurerm_virtual_machine" "jumpbox" {
+ name                  = "jumpbox"
+ location              = azurerm_resource_group.QSRG.location
+ resource_group_name   = azurerm_resource_group.QSRG.name
+ network_interface_ids = [azurerm_network_interface.jumpbox.id]
+ vm_size               = "Standard_DS1_v2"
+
+ storage_image_reference {
+   publisher = "Canonical"
+   offer     = "UbuntuServer"
+   sku       = "16.04-LTS"
+   version   = "latest"
+ }
+
+ storage_os_disk {
+   name              = "jumpbox-osdisk"
+   caching           = "ReadWrite"
+   create_option     = "FromImage"
+   managed_disk_type = "Standard_LRS"
+ }
+
+ os_profile {
+   computer_name  = "jumpbox"
+   admin_username = "adminuser"
+   admin_password = "qs@1234$$$!!!"
+ }
+
+ os_profile_linux_config {
+   disable_password_authentication = false
+ }
+
+   tags = {
+    environment = "QuantumSmart"
+  }
+}
