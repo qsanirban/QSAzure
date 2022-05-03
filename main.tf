@@ -52,22 +52,25 @@ resource "azurerm_virtual_network" "QS_VNET" {
   resource_group_name = azurerm_resource_group.QSRG.name
   address_space       = ["10.1.1.0/24"]
   dns_servers         = ["10.1.1.4", "10.1.1.5"]
-
-  subnet {
-    name           = "qs_public_subnet"
-    address_prefix = "10.1.1.0/25"
-  }
-
-  subnet {
-    name           = "qs_private_subnet"
-    address_prefix = "10.1.1.128/25"
-    security_group = azurerm_network_security_group.QS_SG.id
-  }
-
   tags = {
     environment = "QuantumSmart"
   }
 }
+
+resource "azurerm_subnet" "qs_private_subnet" {
+  name                 = "qs_private_subnet"
+  resource_group_name  = azurerm_resource_group.QSRG.name
+  virtual_network_name = azurerm_virtual_network.QS_VNET.name
+  address_prefixes     = ["10.1.1.0/25"]
+}
+
+resource "azurerm_subnet" "qs_public_subnet" {
+  name                 = "qs_public_subnet"
+  resource_group_name  = azurerm_resource_group.QSRG.name
+  virtual_network_name = azurerm_virtual_network.QS_VNET.name
+  address_prefixes     = ["10.1.1.128/25"]
+}
+
 
 
 resource "azurerm_network_interface" "QS_NIC1" {
@@ -77,7 +80,7 @@ resource "azurerm_network_interface" "QS_NIC1" {
 
   ip_configuration {
     name                          = "internal"
-    subnet_id                     = azurerm_subnet.QS_VNET.qs_public_subnet.id
+    subnet_id                     = azurerm_subnet.qs_public_subnet.id
     private_ip_address_allocation = "Dynamic"
   }
 }
@@ -112,9 +115,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "QS_VMSS" {
     primary = true
 
     ip_configuration {
-      name      = "internal"
+      name      = "public_ip"
       primary   = true
-      subnet_id = azurerm_subnet.internal.id
+      subnet_id = azurerm_subnet.qs_public_subnet.id
     }
   }
 }
