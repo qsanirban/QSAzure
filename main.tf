@@ -135,8 +135,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "qs_vmss" {
  resource_group_name = azurerm_resource_group.QSRG.name
  sku                 = "Standard_B1ls"
  instances           = 2  
- admin_username       = "adminuser"
- admin_password       = "qs@1234$$$!!!"
+ admin_username      = "adminuser"
+ admin_password      = "qs@1234$$$!!!"
+ disable_password_authentication = false
  
   source_image_reference {
     publisher = "Canonical"
@@ -144,7 +145,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "qs_vmss" {
     sku       = "20_04-lts-gen2"
     version   = "latest"
   }
- 
+
 os_disk {
     storage_account_type = "Standard_LRS"
     caching              = "ReadWrite"
