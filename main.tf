@@ -109,7 +109,6 @@ resource "azurerm_lb_backend_address_pool" "qs_bpepool" {
  loadbalancer_id     = azurerm_lb.qs_lb.id
  name                = "BackEndAddressPool"
 }
-<<<<<<< HEAD
 
 resource "azurerm_lb_probe" "qs_probe" {
  ## resource_group_name = azurerm_resource_group.QSRG.name
@@ -214,84 +213,6 @@ resource "azurerm_network_interface" "jumpbox" {
  }
 
    tags = {
-=======
-
-resource "azurerm_lb_probe" "qs_probe" {
- resource_group_name = azurerm_resource_group.QSRG.name
- loadbalancer_id     = azurerm_lb.qs_lb.id
- name                = "ssh-running-probe"
- port                = 80
-}
-
-resource "azurerm_lb_rule" "qs_lbnatrule" {
-   resource_group_name            = azurerm_resource_group.QSRG.name
-   loadbalancer_id                = azurerm_lb.qs_lb.id
-   name                           = "http"
-   protocol                       = "Tcp"
-   frontend_port                  = 80
-   backend_port                   = 80
-   backend_address_pool_id        = azurerm_lb_backend_address_pool.qs_bpepool.id
-   frontend_ip_configuration_name = "PublicIPAddress"
-   probe_id                       = azurerm_lb_probe.qs_probe.id
-}
-
-resource "azurerm_virtual_machine_scale_set" "qs_vmss" {
- name                = "qsvmscaleset"
- location            = azurerm_resource_group.QSRG.location
- resource_group_name = azurerm_resource_group.QSRG.name
- upgrade_policy_mode = "Manual"
-
- sku {
-   name     = "Standard_DS1_v2"
-   tier     = "Standard"
-   capacity = 2
- }
-
- storage_profile_image_reference {
-   publisher = "Canonical"
-   offer     = "UbuntuServer"
-   sku       = "20.04-LTS"
-   version   = "latest"
- }
-
- storage_profile_os_disk {
-   name              = ""
-   caching           = "ReadWrite"
-   create_option     = "FromImage"
-   managed_disk_type = "Standard_LRS"
- }
-
- storage_profile_data_disk {
-   lun          = 0
-   caching        = "ReadWrite"
-   create_option  = "Empty"
-   disk_size_gb   = 10
- }
-
- os_profile {
-   computer_name_prefix = "vmlab"
-   admin_username       = "adminuser"
-   admin_password       = "qs@1234$$$!!!"
- }
-
- os_profile_linux_config {
-   disable_password_authentication = false
- }
-
- network_profile {
-   name    = "terraformnetworkprofile"
-   primary = true
-
-   ip_configuration {
-     name                                   = "IPConfiguration"
-     subnet_id                              = azurerm_subnet.qs_public_subnet.id
-     load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.qs_bpepool.id]
-     primary = true
-   }
- }
-
-  tags = {
->>>>>>> 841e649a5ba2644938759de49c5b641e983bd62f
     environment = "QuantumSmart"
   }
 }
