@@ -89,7 +89,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "QS_VMSS" {
   name                = "qsvmss"
   resource_group_name = azurerm_resource_group.QSRG.name
   location            = azurerm_resource_group.QSRG.location
-  sku                 = "Standard_DSv2"
+  sku                 = "Standard_DS_v2"
   instances           = 1
   admin_username      = "adminuser"
 
