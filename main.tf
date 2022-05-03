@@ -95,7 +95,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "QS_VMSS" {
 
   admin_ssh_key {
     username   = "adminuser"
-    public_key = file("~/.ssh/id_rsa.pub")
+    public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDU+K1hcgzdT/M78lljaijBK6QK7fs+wtMoEiDknHs1U10nLbj+ubQ3dFuMhV+GkfvurCmRmqF/qztF+75G6thudREbRoiXtn9VY4lVzBy7GA5/thrIDrqtabfTZw9Rc0sxUjG6dc3QHBfj0IlgmRQF5qzz0lTQcMM8CHtkc4RZN4byBZUVyXXoto1x3GOpMDNCQ81cKGAtWk5MZvoaJ7aQ6htHtS9cXjQEgbuBDCmvfIixDIOy+FO3AWkqg5+2bibGnXkOEfdFLaljmLKAS5GKOtS2gRTtGKILzXUMtics96MiW0hNGjvnLeDTTwM02+GeI9qFWQmhEXOMoJD68j9VmBJml0VH1I9DdIzWECDGSaEw5zBQ6bQvObPCeTUuCWhtWtXDWmqpQMPpUN7cTPSu+0iJJmqwIQAxVWQsq7Y+LXSnqNniv1sNCF5GBvEPj93cNWlbZasZi3+wlAVN4bPpXG4MsFRr5tLk6x20J7La/GUdaEGq1CVtwmwJuKrg6Hs="
   }
 
   source_image_reference {
