@@ -134,11 +134,12 @@ resource "azurerm_linux_virtual_machine_scale_set" "qs_vmss" {
  location            = azurerm_resource_group.QSRG.location
  resource_group_name = azurerm_resource_group.QSRG.name
  upgrade_policy_mode = "Manual"
-
- sku {
-   name     = "Standard_DS1_v2"
-   tier     = "Standard"
-   capacity = 2
+ sku                 = "Standard_DS1_v2"
+ instances           = 2  
+ admin_username       = "adminuser"
+ admin_password       = "qs@1234$$$!!!"
+ os_profile_linux_config {
+   disable_password_authentication = false
  }
 
  storage_profile_image_reference {
@@ -160,16 +161,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "qs_vmss" {
    caching        = "ReadWrite"
    create_option  = "Empty"
    disk_size_gb   = 10
- }
-
- os_profile {
-   computer_name_prefix = "vmlab"
-   admin_username       = "adminuser"
-   admin_password       = "qs@1234$$$!!!"
- }
-
- os_profile_linux_config {
-   disable_password_authentication = false
  }
 
  network_profile {
