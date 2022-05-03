@@ -184,9 +184,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "qs_vmss" {
    }
  }
 
-  tags = {
-    environment = "QuantumSmart"
-  }
 }
 
 resource "azurerm_public_ip" "jumpbox" {
