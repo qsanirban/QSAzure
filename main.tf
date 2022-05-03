@@ -138,41 +138,28 @@ resource "azurerm_linux_virtual_machine_scale_set" "qs_vmss" {
  instances           = 2  
  admin_username       = "adminuser"
  admin_password       = "qs@1234$$$!!!"
- os_profile_linux_config {
-   disable_password_authentication = false
- }
+ 
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "20.04-LTS"
+    version   = "latest"
+  }
+ 
+os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
 
- storage_profile_image_reference {
-   publisher = "Canonical"
-   offer     = "UbuntuServer"
-   sku       = "20.04-LTS"
-   version   = "latest"
- }
+  network_interface {
+    name    = "example"
+    primary = true
 
- storage_profile_os_disk {
-   name              = ""
-   caching           = "ReadWrite"
-   create_option     = "FromImage"
-   managed_disk_type = "Standard_LRS"
- }
-
- storage_profile_data_disk {
-   lun          = 0
-   caching        = "ReadWrite"
-   create_option  = "Empty"
-   disk_size_gb   = 10
- }
-
- network_profile {
-   name    = "terraformnetworkprofile"
-   primary = true
-
-   ip_configuration {
-     name                                   = "IPConfiguration"
-     subnet_id                              = azurerm_subnet.qs_public_subnet.id
-     load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.qs_bpepool.id]
-     primary = true
-   }
- }
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.qs_public_ip.id
+    }
+  }
 
 }
