@@ -68,3 +68,54 @@ resource "azurerm_virtual_network" "QS_VNET" {
     environment = "QuantumSmart"
   }
 }
+
+
+resource "azurerm_network_interface" "QS_NIC1" {
+  name                = "qs_nic1"
+  location            = azurerm_resource_group.QSRG.location
+  resource_group_name = azurerm_resource_group.QSRG.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.qs_public_subnet.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "QS_VMSS" {
+  name                = "qs_vmss"
+  resource_group_name = azurerm_resource_group.QSRG.name
+  location            = azurerm_resource_group.QSRG.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = file("~/.ssh/id_rsa.pub")
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "20.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = azurerm_network_interface.QS_NIC1.name
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.internal.id
+    }
+  }
+}
+
